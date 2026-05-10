@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { policyCatalog, type CatalogProgram } from '@/lib/funding/catalog'
+
+export const preferredRegion = ['icn1']
 import { fetchKinfaLoans } from '@/lib/funding/kinfa'
 import type { FundingFit, FundingKind, FundingProgram, FundingResponse } from '@/types/funding'
 

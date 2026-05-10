@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
+
+export const preferredRegion = ['icn1']
 import type { SimulatorInput, SimulatorResult } from '@/types/simulator'
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })

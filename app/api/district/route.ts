@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+export const preferredRegion = ['icn1']
+
 const BASE = 'http://openapi.seoul.go.kr:8088'
 
 type SeoulRow = Record<string, string | number | null | undefined>
