@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import KakaoMap, { type KakaoMapHandle } from '@/components/KakaoMap'
 import { runStartupSimulation } from '@/lib/simulator'
@@ -67,8 +68,8 @@ function NumberField({
   )
 }
 
-function MetricCard({ label, value, tone = 'default' }: { label: string; value: string; tone?: 'default' | 'blue' | 'red' }) {
-  const toneClass = tone === 'blue' ? 'text-rose-600' : tone === 'red' ? 'text-red-600' : 'text-gray-900'
+function MetricCard({ label, value, tone = 'default' }: { label: string; value: string; tone?: 'default' | 'blue' | 'red' | 'green' }) {
+  const toneClass = tone === 'blue' ? 'text-blue-600' : tone === 'red' ? 'text-red-600' : tone === 'green' ? 'text-green-600' : 'text-gray-900'
   return (
     <div className="rounded-xl bg-white p-4 shadow-sm">
       <p className="text-xs font-medium text-gray-500">{label}</p>
@@ -127,7 +128,7 @@ function ScoreBar({ label, value, max }: { label: string; value: number; max: nu
         <span className="font-semibold text-gray-700">{value}/{max}</span>
       </div>
       <div className="h-2 rounded-full bg-gray-100">
-        <div className="h-2 rounded-full bg-rose-500" style={{ width: `${Math.min(100, value / max * 100)}%` }} />
+        <div className="h-2 rounded-full bg-blue-500" style={{ width: `${Math.min(100, value / max * 100)}%` }} />
       </div>
     </div>
   )
@@ -138,8 +139,15 @@ type SimulatorSummary = {
   sections: { title: string; content: string }[]
 }
 
-export default function SimulatorPage() {
+function SimulatorPageInner() {
+  const searchParams = useSearchParams()
+  const initLat = searchParams.get('lat') ? Number(searchParams.get('lat')) : null
+  const initLng = searchParams.get('lng') ? Number(searchParams.get('lng')) : null
+  const initIndustryRef = useRef(searchParams.get('industry') ?? '')
+
   const mapRef = useRef<KakaoMapHandle>(null)
+  const searchWrapRef = useRef<HTMLDivElement>(null)
+  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [markers, setMarkers] = useState<MarkerInfo[]>([])
   const [district, setDistrict] = useState<DistrictData | null>(null)
   const [industryData, setIndustryData] = useState<DistrictData | null>(null)
@@ -154,6 +162,9 @@ export default function SimulatorPage() {
   const [result, setResult] = useState<SimulatorResult | null>(null)
   const [aiSummary, setAiSummary] = useState<SimulatorSummary | null>(null)
   const [summaryLoading, setSummaryLoading] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<{ address: string; lat: number; lng: number }[]>([])
+  const [showResults, setShowResults] = useState(false)
 
   const marker = markers[0] ?? null
   const industries = useMemo(() => district?.topIndustries ?? [], [district])
@@ -168,6 +179,35 @@ export default function SimulatorPage() {
     (program.source === 'policy_catalog' && !['loan', 'guarantee'].includes(program.kind))
   )
 
+  // URL 파라미터로 전달된 위치를 지도가 준비되는 즉시 마커로 배치
+  useEffect(() => {
+    if (!initLat || !initLng || markers.length > 0) return
+    const interval = setInterval(() => {
+      mapRef.current?.setMarker(initLat, initLng)
+    }, 300)
+    return () => clearInterval(interval)
+  }, [initLat, initLng, markers.length])
+
+  useEffect(() => {
+    function onOutside(e: MouseEvent) {
+      if (searchWrapRef.current && !searchWrapRef.current.contains(e.target as Node))
+        setShowResults(false)
+    }
+    document.addEventListener('mousedown', onOutside)
+    return () => document.removeEventListener('mousedown', onOutside)
+  }, [])
+
+  useEffect(() => {
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current)
+    if (!searchQuery.trim()) { setSearchResults([]); setShowResults(false); return }
+    searchTimeoutRef.current = setTimeout(async () => {
+      const results = await mapRef.current?.searchAddress(searchQuery) ?? []
+      setSearchResults(results)
+      setShowResults(results.length > 0)
+    }, 400)
+    return () => { if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current) }
+  }, [searchQuery])
+
   useEffect(() => {
     if (!marker?.adstrdCd) return
 
@@ -175,8 +215,12 @@ export default function SimulatorPage() {
       .then((res) => res.json())
       .then((data: DistrictData) => {
         setDistrict(data)
-        if (data.topIndustries[0]?.code) setIndustryLoading(true)
-        setSelectedIndustryCode(data.topIndustries[0]?.code ?? '')
+        const preferred = initIndustryRef.current && data.topIndustries.some((i) => i.code === initIndustryRef.current)
+          ? initIndustryRef.current
+          : (data.topIndustries[0]?.code ?? '')
+        initIndustryRef.current = ''
+        if (preferred) setIndustryLoading(true)
+        setSelectedIndustryCode(preferred)
       })
       .catch(() => setDistrict(null))
       .finally(() => setDistrictLoading(false))
@@ -222,6 +266,13 @@ export default function SimulatorPage() {
     resetAnalysis()
   }
 
+  function handleSearchSelect(r: { address: string; lat: number; lng: number }) {
+    mapRef.current?.setMarker(r.lat, r.lng)
+    setSearchQuery('')
+    setSearchResults([])
+    setShowResults(false)
+  }
+
   function resetLocation() {
     mapRef.current?.reset()
     setMarkers([])
@@ -230,6 +281,8 @@ export default function SimulatorPage() {
     setSelectedIndustryCode('')
     setDistrictLoading(false)
     setIndustryLoading(false)
+    setSearchQuery('')
+    setShowResults(false)
     resetAnalysis()
   }
 
@@ -296,15 +349,15 @@ export default function SimulatorPage() {
 
   return (
     <main className="min-h-screen bg-gray-50 text-gray-900">
-      <header className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-3">
+      <header className="flex items-center justify-between px-6 py-3 border-b shrink-0" style={{ background: "#daeaf1" }}>
         <div className="flex items-center gap-4">
-          <Link href="/compare" className="text-sm text-gray-400 hover:text-gray-700">상권 비교</Link>
-          <h1 className="text-lg font-bold">창업 시뮬레이터</h1>
+          <Link href="/compare" className="text-sm text-slate-500 hover:text-slate-700">상권 비교</Link>
+          <h1 className="text-lg font-bold text-slate-700">창업 시뮬레이터</h1>
         </div>
-        <p className="text-sm text-gray-500">입지 진단부터 자금 추천까지 한 번에 확인합니다.</p>
+        <p className="text-sm text-slate-500">입지 진단부터 자금 추천까지 한 번에 확인합니다.</p>
       </header>
 
-      <div className="grid min-h-[calc(100vh-57px)] grid-cols-[430px_1fr]">
+      <div className="grid min-h-[calc(100vh-57px)] grid-cols-[500px_1fr]">
         <aside className="border-r border-gray-200 bg-white">
           <div className="h-72 border-b border-gray-200">
             <div className="relative h-full">
@@ -322,13 +375,41 @@ export default function SimulatorPage() {
                   </button>
                 )}
               </div>
+
+              {/* 주소 검색 */}
+              <div ref={searchWrapRef} className="relative mb-2">
+                <div className="flex items-center rounded-lg border border-gray-200 bg-white px-3 focus-within:border-orange-400">
+                  <span className="text-gray-400 text-sm mr-2">🔍</span>
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="동/구 이름 검색 (예: 합정동)"
+                    className="flex-1 py-2 text-sm outline-none placeholder-gray-400"
+                  />
+                  {searchQuery && (
+                    <button onClick={() => { setSearchQuery(''); setShowResults(false) }}
+                      className="text-gray-300 hover:text-gray-500 text-xs ml-1">✕</button>
+                  )}
+                </div>
+                {showResults && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-20 overflow-hidden">
+                    {searchResults.map((r, i) => (
+                      <button key={i} onClick={() => handleSearchSelect(r)}
+                        className={`w-full text-left px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors ${i > 0 ? 'border-t border-gray-50' : ''}`}>
+                        {r.address}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               {marker ? (
-                <div className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-800">
+                <div className="rounded-lg bg-orange-50 px-3 py-2 text-sm text-orange-800">
                   <span className="font-semibold">{marker.guName} {marker.dongName}</span>
-                  <span className="ml-2 text-xs text-rose-400">{marker.adstrdCd.slice(0, 8)}</span>
                 </div>
               ) : (
-                <p className="rounded-lg bg-gray-50 px-3 py-3 text-sm text-gray-500">지도에서 창업 후보 위치를 클릭하세요.</p>
+                <p className="text-xs text-gray-400 text-center">또는 지도를 직접 클릭해 선택</p>
               )}
             </section>
 
@@ -343,7 +424,7 @@ export default function SimulatorPage() {
                 {!industries.length && <option>위치를 먼저 선택하세요</option>}
                 {industries.map((industry) => (
                   <option key={industry.code} value={industry.code}>
-                    {industry.name} · {fmtWon(industry.sales)}
+                    {industry.name}
                   </option>
                 ))}
               </select>
@@ -375,7 +456,7 @@ export default function SimulatorPage() {
             <button
               onClick={analyze}
               disabled={!canAnalyze || analyzing}
-              className="w-full rounded-lg bg-rose-500 py-3 text-sm font-bold text-white transition-colors hover:bg-rose-600 disabled:bg-gray-300"
+              className="w-full rounded-lg bg-orange-500 py-3 text-sm font-bold text-white transition-colors hover:bg-orange-600 disabled:bg-gray-300"
             >
               {loading ? '상권 데이터 불러오는 중...' : analyzing ? '분석 중...' : '분석 시작'}
             </button>
@@ -410,16 +491,16 @@ export default function SimulatorPage() {
                 </div>
                 <div className="rounded-lg bg-white px-5 py-3 text-right shadow-sm ring-1 ring-gray-200">
                   <p className="text-xs font-semibold text-gray-500">생존가능성 점수</p>
-                  <p className={`text-3xl font-black ${result.survivalScore >= 70 ? 'text-rose-600' : result.survivalScore >= 55 ? 'text-amber-600' : 'text-red-600'}`}>
+                  <p className={`text-3xl font-black ${result.survivalScore >= 80 ? 'text-green-600' : result.survivalScore >= 50 ? 'text-amber-500' : 'text-red-600'}`}>
                     {result.survivalScore}
                   </p>
                 </div>
               </div>
 
               <div className="grid grid-cols-4 gap-4">
-                <MetricCard label="예상 월매출" value={fmtWon(result.estimatedMonthlySales)} tone="blue" />
+                <MetricCard label="예상 월매출" value={fmtWon(result.estimatedMonthlySales)} />
                 <MetricCard label="월 예상 순이익" value={fmtWon(result.expectedMonthlyProfit)} tone={result.expectedMonthlyProfit >= 0 ? 'blue' : 'red'} />
-                <MetricCard label="손익분기점 매출" value={fmtWon(result.breakEvenSales)} />
+                <MetricCard label="손익분기점 매출" value={fmtWon(result.breakEvenSales)} tone="green" />
                 <MetricCard label="필요 추가자금" value={fmtWon(result.fundingGap)} tone={result.fundingGap > 0 ? 'red' : 'blue'} />
               </div>
 
@@ -469,7 +550,7 @@ export default function SimulatorPage() {
                     <span className="text-xs text-rose-500 animate-pulse">AI 분석 중…</span>
                   )}
                   {!summaryLoading && aiSummary && (
-                    <span className="rounded bg-rose-50 px-2 py-0.5 text-xs font-semibold text-rose-600">AI 생성</span>
+                    <span className="rounded bg-rose-50 px-2 py-0.5 text-xs font-semibold text-rose-600">AI</span>
                   )}
                 </div>
 
@@ -486,12 +567,12 @@ export default function SimulatorPage() {
                 ) : aiSummary ? (
                   <div className="mt-3 space-y-4">
                     <div className="rounded-lg bg-rose-50 px-3 py-2.5">
-                      <p className="text-xs font-bold text-rose-700">✦ {aiSummary.verdict}</p>
+                      <p className="text-sm font-bold text-rose-700">✦ {aiSummary.verdict}</p>
                     </div>
                     {aiSummary.sections.map((section) => (
                       <div key={section.title}>
-                        <p className="text-xs font-semibold text-gray-500 mb-1">{section.title}</p>
-                        <p className="text-sm leading-6 text-gray-700">{section.content}</p>
+                        <p className="text-sm font-bold text-gray-700 mb-1">{section.title}</p>
+                        <p className="text-sm font-medium leading-6 text-gray-700">{section.content}</p>
                       </div>
                     ))}
                   </div>
@@ -575,5 +656,13 @@ export default function SimulatorPage() {
         </section>
       </div>
     </main>
+  )
+}
+
+export default function SimulatorPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center h-screen text-gray-400">로딩 중...</div>}>
+      <SimulatorPageInner />
+    </Suspense>
   )
 }

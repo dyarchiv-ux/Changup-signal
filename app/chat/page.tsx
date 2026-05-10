@@ -1,7 +1,9 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { Suspense, useEffect, useRef, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import KakaoMap, { type KakaoMapHandle } from '@/components/KakaoMap'
 import type { DistrictData, MarkerInfo } from '@/types/map'
 
@@ -54,14 +56,14 @@ function MessageBubble({ msg }: { msg: Message }) {
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
       {!isUser && (
-        <div className="mr-2 mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-rose-500 text-xs font-bold text-white">
-          AI
+        <div className="mr-2 mt-1 h-14 w-14 shrink-0 rounded-full overflow-hidden bg-white border border-gray-200">
+          <Image src="/ai-marker.png" alt="AI" width={56} height={56} className="object-contain translate-y-2" />
         </div>
       )}
       <div className={`max-w-[78%] rounded-2xl px-4 py-2.5 text-sm leading-6 whitespace-pre-wrap ${
         isUser
           ? 'bg-gray-800 text-white rounded-br-sm'
-          : 'bg-white border border-gray-200 text-gray-800 rounded-bl-sm'
+          : 'bg-white border border-gray-200 text-gray-900 font-medium rounded-bl-sm'
       }`}>
         {msg.content}
       </div>
@@ -70,7 +72,12 @@ function MessageBubble({ msg }: { msg: Message }) {
 }
 
 // ── 메인 ─────────────────────────────────────────────────────────────────────
-export default function ChatPage() {
+function ChatPageInner() {
+  const searchParams = useSearchParams()
+  const initLat = searchParams.get('lat') ? Number(searchParams.get('lat')) : null
+  const initLng = searchParams.get('lng') ? Number(searchParams.get('lng')) : null
+  const initIndustryRef = useRef(searchParams.get('industry') ?? '')
+
   const mapRef = useRef<KakaoMapHandle>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
@@ -93,6 +100,15 @@ export default function ChatPage() {
   const industries = district?.topIndustries ?? []
   const activeData = industryData ?? district
   const selectedIndustry = industries.find(i => i.code === selectedIndustryCode) ?? null
+
+  // URL 파라미터로 전달된 위치를 지도가 준비되는 즉시 마커로 배치
+  useEffect(() => {
+    if (!initLat || !initLng || markers.length > 0) return
+    const interval = setInterval(() => {
+      mapRef.current?.setMarker(initLat, initLng)
+    }, 300)
+    return () => clearInterval(interval)
+  }, [initLat, initLng, markers.length])
 
   // 외부 클릭 시 검색 드롭다운 닫기
   useEffect(() => {
@@ -128,10 +144,11 @@ export default function ChatPage() {
       .then(r => r.json())
       .then((data: DistrictData) => {
         setDistrict(data)
-        // 매출 1위 업종 자동 선택
-        if (data.topIndustries[0]?.code) {
-          setSelectedIndustryCode(data.topIndustries[0].code)
-        }
+        const preferred = initIndustryRef.current && data.topIndustries.some((i) => i.code === initIndustryRef.current)
+          ? initIndustryRef.current
+          : (data.topIndustries[0]?.code ?? '')
+        initIndustryRef.current = ''
+        if (preferred) setSelectedIndustryCode(preferred)
       })
       .catch(() => {})
       .finally(() => setDistrictLoading(false))
@@ -272,12 +289,12 @@ export default function ChatPage() {
   return (
     <main className="flex flex-col h-screen bg-gray-50">
       {/* 헤더 */}
-      <header className="flex items-center justify-between px-6 py-3 border-b bg-white shrink-0">
+      <header className="flex items-center justify-between px-6 py-3 border-b shrink-0" style={{ background: "#daeaf1" }}>
         <div className="flex items-center gap-4">
-          <Link href="/compare" className="text-sm text-gray-400 hover:text-gray-600">← 상권 비교</Link>
-          <h1 className="text-lg font-bold">AI 상담</h1>
+          <Link href="/compare" className="text-sm text-slate-500 hover:text-slate-700">← 상권 비교</Link>
+          <h1 className="text-lg font-bold text-slate-700">AI 상담</h1>
         </div>
-        <p className="text-sm text-gray-400">GPT-4o 기반 창업 전문 상담</p>
+        <p className="text-sm text-slate-500">창업 전문 AI가 상담해드립니다</p>
       </header>
 
       <div className="flex flex-1 min-h-0">
@@ -330,7 +347,7 @@ export default function ChatPage() {
 
               {/* 선택된 위치 표시 */}
               {marker ? (
-                <div className="mt-2 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-800 font-semibold">
+                <div className="mt-2 rounded-lg bg-orange-50 px-3 py-2 text-sm text-orange-800 font-semibold">
                   {marker.guName} {marker.dongName}
                 </div>
               ) : (
@@ -410,7 +427,9 @@ export default function ChatPage() {
             ))}
             {streaming && messages[messages.length - 1]?.content === '' && (
               <div className="flex justify-start">
-                <div className="mr-2 mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-rose-500 text-xs font-bold text-white">AI</div>
+                <div className="mr-2 mt-1 h-7 w-7 shrink-0 rounded-full overflow-hidden bg-white border border-gray-200">
+                  <Image src="/ai-marker.png" alt="AI" width={28} height={28} className="object-contain" />
+                </div>
                 <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-sm px-4 py-2.5">
                   <span className="inline-flex gap-1">
                     <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
@@ -448,9 +467,9 @@ export default function ChatPage() {
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder={marker ? '궁금한 점을 입력하세요... (Enter로 전송)' : '위치를 먼저 선택해주세요'}
+                placeholder={marker ? '궁금한 점을 입력하세요' : '위치를 먼저 선택해주세요'}
                 disabled={!marker || streaming || districtLoading}
-                className="flex-1 resize-none rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-rose-400 disabled:bg-gray-50 disabled:text-gray-400 leading-5"
+                className="flex-1 resize-none rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 outline-none focus:border-orange-400 disabled:bg-gray-50 disabled:text-gray-400 leading-5"
                 style={{ maxHeight: 120 }}
                 onInput={e => {
                   const el = e.currentTarget
@@ -461,7 +480,7 @@ export default function ChatPage() {
               <button
                 onClick={() => sendMessage(input)}
                 disabled={!input.trim() || !marker || streaming || districtLoading}
-                className="h-11 w-11 shrink-0 flex items-center justify-center rounded-xl bg-rose-500 text-white hover:bg-rose-600 disabled:bg-gray-200 transition-colors"
+                className="h-11 w-11 shrink-0 flex items-center justify-center rounded-xl bg-orange-500 text-white hover:bg-orange-600 disabled:bg-gray-200 transition-colors"
               >
                 ↑
               </button>
@@ -470,5 +489,13 @@ export default function ChatPage() {
         </div>
       </div>
     </main>
+  )
+}
+
+export default function ChatPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center h-screen text-gray-400">로딩 중...</div>}>
+      <ChatPageInner />
+    </Suspense>
   )
 }

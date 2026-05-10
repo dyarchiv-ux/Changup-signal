@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
+import { Search } from 'lucide-react'
 import KakaoMap, { type KakaoMapHandle } from '@/components/KakaoMap'
 import type { MarkerInfo, DistrictData, IndustryItem } from '@/types/map'
 
@@ -17,7 +18,7 @@ const fmtCnt  = (n: number | null) => n == null ? '-' : `${n.toLocaleString()}�
 const fmtRate = (n: number | null) => n == null ? '-' : `${n.toFixed(1)}%`
 
 // ── 도넛 차트 ─────────────────────────────────────────────────────────────────
-const DAY_COLORS = ['#7494c7','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#f97316']
+const DAY_COLORS = ['#ef4444','#f97316','#eab308','#22c55e','#3b82f6','#6366f1','#a855f7']
 const GAP = 1.5  // 세그먼트 사이 흰 간격 (circumference 단위)
 
 function DonutChart({ labels, values, colors }: {
@@ -56,14 +57,14 @@ function DonutChart({ labels, values, colors }: {
           <div key={label} className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full shrink-0"
               style={{ background: palette[i % palette.length] }} />
-            <span className="text-xs text-gray-600">{label}</span>
-            <span className="text-xs font-bold text-gray-700">{segments[i].pct}%</span>
+            <span className="text-sm text-gray-700">{label}</span>
+            <span className="text-sm font-bold text-gray-900">{segments[i].pct}%</span>
           </div>
         ))}
       </div>
 
       {/* 도넛 */}
-      <div className="relative flex-1" style={{ aspectRatio: '1' }}>
+      <div className="relative w-52 shrink-0" style={{ aspectRatio: '1' }}>
         <svg viewBox="0 0 100 100" className="w-full h-full"
           style={{ transform: 'rotate(-90deg)' }}>
           {/* 배경 링 */}
@@ -126,10 +127,10 @@ function GenderBar({ malePct, femalePct }: { malePct: number | null; femalePct: 
   return (
     <div className="flex items-center gap-2 text-xs">
       <span className="text-blue-500 font-medium">남 {malePct}%</span>
-      <div className="flex-1 h-1.5 rounded-full overflow-hidden bg-pink-200">
-        <div className="h-full bg-blue-400 rounded-full" style={{ width: `${malePct}%` }} />
+      <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: "#f1f7f8" }}>
+        <div className="h-full rounded-full" style={{ width: `${malePct}%`, background: "#abc6db" }} />
       </div>
-      <span className="text-pink-500 font-medium">여 {femalePct}%</span>
+      <span className="font-medium text-slate-500">여 {femalePct}%</span>
     </div>
   )
 }
@@ -161,7 +162,7 @@ function IndustrySelector({ industries, selected, onChange }: {
           onClick={() => setOpen(o => !o)}
           className={`w-full flex items-center justify-between px-3 py-2 rounded-lg border text-sm transition-colors ${
             selected
-              ? 'border-rose-300 bg-rose-50 text-rose-600'
+              ? 'border-[#f97316] bg-[#fff7ed] text-[#c2410c]'
               : 'border-gray-200 bg-white text-gray-500 hover:bg-gray-50'
           }`}
         >
@@ -179,7 +180,7 @@ function IndustrySelector({ industries, selected, onChange }: {
                   i > 0 ? 'border-t border-gray-50' : ''
                 } ${
                   selected === ind.code
-                    ? 'bg-rose-50 text-rose-600 font-medium'
+                    ? 'bg-[#fff7ed] text-[#c2410c] font-medium'
                     : 'text-gray-700 hover:bg-gray-50'
                 }`}
               >
@@ -206,36 +207,36 @@ function SingleAnalysis({ data, label }: { data: DistrictData; label: 'A' | 'B' 
     <div className="space-y-4 px-5 py-4">
       {/* 핵심 지표 */}
       <div>
-        <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-2">
+        <p className="text-sm font-bold text-gray-700 mb-2">
           {isIndustry ? `${data.industryName} 상권 분석` : '전체 상권 현황'}
         </p>
         <div className="grid grid-cols-2 gap-2">
           <div className="bg-gray-50 rounded-lg p-2.5">
-            <p className="text-[10px] text-gray-400">추정 월매출</p>
-            <p className={`text-sm font-bold ${accent}`}>
+            <p className="text-sm font-semibold text-gray-700">추정 월매출</p>
+            <p className={`text-base font-bold ${accent}`}>
               {fmtAmt(isIndustry ? data.monthlySales : data.totalSales)}
-              {(isIndustry ? data.monthlySales : data.totalSales) != null && <span className="text-xs font-normal text-gray-500">원</span>}
+              {(isIndustry ? data.monthlySales : data.totalSales) != null && <span className="text-sm font-normal text-gray-500">원</span>}
             </p>
           </div>
           <div className="bg-gray-50 rounded-lg p-2.5">
-            <p className="text-[10px] text-gray-400">일평균 생활인구</p>
-            <p className="text-sm font-bold text-gray-800">{fmtPop(data.population)}</p>
+            <p className="text-sm font-semibold text-gray-700">일평균 생활인구</p>
+            <p className="text-base font-bold text-gray-900">{fmtPop(data.population)}</p>
           </div>
           <div className="bg-gray-50 rounded-lg p-2.5">
-            <p className="text-[10px] text-gray-400">분기 유동인구</p>
-            <p className="text-sm font-bold text-gray-800">{fmtPop(data.flowPopulation)}</p>
+            <p className="text-sm font-semibold text-gray-700">분기 유동인구</p>
+            <p className="text-base font-bold text-gray-900">{fmtPop(data.flowPopulation)}</p>
           </div>
           <div className="bg-gray-50 rounded-lg p-2.5">
-            <p className="text-[10px] text-gray-400">{isIndustry ? '업종 내 점포' : '총 점포 수'}</p>
-            <p className="text-sm font-bold text-gray-800">
+            <p className="text-sm font-semibold text-gray-700">{isIndustry ? '업종 내 점포' : '총 점포 수'}</p>
+            <p className="text-base font-bold text-gray-900">
               {fmtCnt(isIndustry ? data.storeCount : data.totalStores)}
             </p>
           </div>
           <div className="bg-gray-50 rounded-lg p-2.5">
-            <p className="text-[10px] text-gray-400">월 소비지출</p>
-            <p className="text-sm font-bold text-gray-800">
+            <p className="text-sm font-semibold text-gray-700">월 소비지출</p>
+            <p className="text-base font-bold text-gray-900">
               {fmtAmt(data.consumptionAmt)}
-              {data.consumptionAmt != null && <span className="text-xs font-normal text-gray-500">원</span>}
+              {data.consumptionAmt != null && <span className="text-sm font-normal text-gray-500">원</span>}
             </p>
           </div>
         </div>
@@ -244,22 +245,22 @@ function SingleAnalysis({ data, label }: { data: DistrictData; label: 'A' | 'B' 
       {/* 경쟁 분석 (업종 선택 시) */}
       {isIndustry && (
         <div>
-          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-2">경쟁 분석</p>
-          <div className="space-y-1.5 text-xs">
+          <p className="text-sm font-bold text-gray-700 mb-2">경쟁 분석</p>
+          <div className="space-y-1.5 text-sm">
             <div className="flex justify-between">
-              <span className="text-gray-500">유사업종 점포</span>
+              <span className="text-gray-700">유사업종 점포</span>
               <span className="font-medium">{fmtCnt(data.similarStores)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">개업률</span>
+              <span className="text-gray-700">개업률</span>
               <span className="font-medium text-green-600">{fmtRate(data.openRate)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">폐업률</span>
+              <span className="text-gray-700">폐업률</span>
               <span className="font-medium text-red-500">{fmtRate(data.closeRate)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">프랜차이즈 비율</span>
+              <span className="text-gray-700">프랜차이즈 비율</span>
               <span className="font-medium">{fmtRate(data.franchiseRate)}</span>
             </div>
           </div>
@@ -269,7 +270,7 @@ function SingleAnalysis({ data, label }: { data: DistrictData; label: 'A' | 'B' 
       {/* 요일별 패턴 */}
       {data.weekdaySales && data.weekendSales && (
         <div>
-          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-2">요일별 매출</p>
+          <p className="text-sm font-bold text-gray-700 mb-2">요일별 매출</p>
           <DonutChart
             labels={['월', '화', '수', '목', '금', '토', '일']}
             values={[...data.weekdaySales, ...data.weekendSales]}
@@ -280,7 +281,7 @@ function SingleAnalysis({ data, label }: { data: DistrictData; label: 'A' | 'B' 
       {/* 시간대별 패턴 */}
       {data.timeSales && (
         <div>
-          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-2">시간대별 매출</p>
+          <p className="text-sm font-bold text-gray-700 mb-2">시간대별 매출</p>
           <BarChart
             labels={['0시', '6시', '11시', '14시', '17시', '21시']}
             values={data.timeSales}
@@ -292,16 +293,16 @@ function SingleAnalysis({ data, label }: { data: DistrictData; label: 'A' | 'B' 
       {/* 고객 분석 */}
       {(data.malePct != null || data.agePct) && (
         <div>
-          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-2">고객 분석</p>
+          <p className="text-sm font-bold text-gray-700 mb-2">고객 분석</p>
           {data.malePct != null && (
             <div className="mb-2">
-              <p className="text-[10px] text-gray-400 mb-1">성별 분포</p>
+              <p className="text-sm text-gray-700 mb-1">성별 분포</p>
               <GenderBar malePct={data.malePct} femalePct={data.femalePct} />
             </div>
           )}
           {data.agePct && (
             <div>
-              <p className="text-[10px] text-gray-400 mb-1">연령대 분포</p>
+              <p className="text-sm text-gray-700 mb-1">연령대 분포</p>
               <BarChart
                 labels={['10대', '20대', '30대', '40대', '50대', '60+']}
                 values={data.agePct}
@@ -353,9 +354,9 @@ function CompareAnalysis({ dataA, dataB }: { dataA: DistrictData | null; dataB: 
       {/* 비교 표 */}
       <div>
         <div className="grid grid-cols-[1fr_auto_1fr] text-center pb-1.5 border-b border-gray-100">
-          <span className="text-xs font-bold text-blue-600">A지역</span>
-          <span className="text-xs text-gray-300 px-2">지표</span>
-          <span className="text-xs font-bold text-red-600">B지역</span>
+          <span className="text-sm font-bold text-blue-600">A지역</span>
+          <span className="text-sm text-gray-400 px-2">지표</span>
+          <span className="text-sm font-bold text-red-600">B지역</span>
         </div>
         {rows.map(({ label, aVal, bVal, dir }) => {
           // 실제 숫자 추출 (비교용)
@@ -373,9 +374,9 @@ function CompareAnalysis({ dataA, dataB }: { dataA: DistrictData | null; dataB: 
           const c = cmp(getNum(dataA, label), getNum(dataB, label), dir)
           return (
             <div key={label} className="grid grid-cols-[1fr_auto_1fr] items-center py-1.5 border-b border-gray-50">
-              <span className={`text-xs text-right pr-2 ${c.a}`}>{aVal}</span>
-              <span className="text-[10px] text-gray-400 text-center whitespace-nowrap">{label}</span>
-              <span className={`text-xs text-left pl-2 ${c.b}`}>{bVal}</span>
+              <span className={`text-base text-right pr-2 ${c.a}`}>{aVal}</span>
+              <span className="text-sm text-gray-600 text-center whitespace-nowrap">{label}</span>
+              <span className={`text-base text-left pl-2 ${c.b}`}>{bVal}</span>
             </div>
           )
         })}
@@ -384,7 +385,7 @@ function CompareAnalysis({ dataA, dataB }: { dataA: DistrictData | null; dataB: 
       {/* 요일 패턴 비교 (업종 선택 시) */}
       {isIndustry && (dataA?.weekdaySales || dataB?.weekdaySales) && (
         <div>
-          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-2">요일별 매출</p>
+          <p className="text-sm font-bold text-gray-700 mb-2">요일별 매출</p>
           {dataA?.weekdaySales && dataA.weekendSales && (
             <div className="mb-3">
               <p className="text-[10px] text-blue-500 mb-1">A지역</p>
@@ -405,7 +406,7 @@ function CompareAnalysis({ dataA, dataB }: { dataA: DistrictData | null; dataB: 
       {/* 고객 분석 비교 (업종 선택 시) */}
       {isIndustry && (dataA?.malePct != null || dataB?.malePct != null) && (
         <div>
-          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-2">고객 분석</p>
+          <p className="text-sm font-bold text-gray-700 mb-2">고객 분석</p>
           {dataA?.malePct != null && (
             <div className="mb-1.5">
               <p className="text-[10px] text-blue-500 mb-1">A 지역 성별</p>
@@ -528,13 +529,21 @@ export default function ComparePage() {
 
   const isLoading = loadingMap.A || loadingMap.B
 
+  const simulatorHref = markers.length >= 1
+    ? `/simulator?lat=${markers[0].lat}&lng=${markers[0].lng}${selectedIndustry ? `&industry=${selectedIndustry}` : ''}`
+    : '/simulator'
+
+  const chatHref = markers.length >= 1
+    ? `/chat?lat=${markers[0].lat}&lng=${markers[0].lng}${selectedIndustry ? `&industry=${selectedIndustry}` : ''}`
+    : '/chat'
+
   const navLinks = (
     <div className="flex gap-2">
-      <Link href="/simulator"
-        className="flex-1 text-center py-2 text-xs font-semibold bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors">
-        시뮬레이터
+      <Link href={simulatorHref}
+        className="flex-1 text-center py-2 text-xs font-semibold text-white rounded-lg hover:opacity-90 transition-opacity" style={{ background: "#f97316" }}>
+        창업 시뮬레이터
       </Link>
-      <Link href="/chat"
+      <Link href={chatHref}
         className="flex-1 text-center py-2 text-xs font-semibold bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors">
         AI 상담
       </Link>
@@ -544,13 +553,13 @@ export default function ComparePage() {
   return (
     <main className="flex flex-col h-screen">
       {/* 헤더 */}
-      <header className="flex items-center justify-between px-6 py-3 border-b shrink-0">
+      <header className="flex items-center justify-between px-6 py-3 border-b shrink-0" style={{ background: "#daeaf1" }}>
         <div className="flex items-center gap-4">
-          <Link href="/" className="text-sm text-gray-400 hover:text-gray-600">← 홈</Link>
-          <h1 className="text-lg font-bold">창업 레이더</h1>
+          <Link href="/" className="text-sm text-slate-500 hover:text-slate-700">← 시작페이지로</Link>
+          <h1 className="text-lg font-bold text-slate-700"> 창업 입지 비교 분석</h1>
         </div>
-        <p className="text-sm text-gray-500">
-          {panelState === 'idle' && '지도를 클릭해 분석할 지역을 선택하세요'}
+        <p className="text-sm text-slate-500">
+          {panelState === 'idle' && '지도에서 분석할 지역을 선택하세요'}
           {panelState === 'single' && 'B지역을 추가하면 두 지역을 비교할 수 있어요'}
           {panelState === 'comparing' && 'A·B 두 지역 비교'}
         </p>
@@ -563,14 +572,14 @@ export default function ComparePage() {
         </div>
 
         {/* 분석 패널 */}
-        <div className="w-[30rem] border-l flex flex-col bg-white shrink-0">
+        <div className="w-[40rem] border-l flex flex-col bg-white shrink-0">
 
           {/* idle */}
           {panelState === 'idle' && (
             <div className="flex flex-col items-center justify-center h-full text-center p-8">
-              <div className="text-5xl mb-4">📍</div>
-              <p className="font-semibold text-gray-700">지역을 선택하세요</p>
-              <p className="text-sm text-gray-400 mt-2 leading-relaxed">
+              <div className="mb-6 text-slate-300"><Search size={80} strokeWidth={1.2} /></div>
+              <p className="text-xl font-semibold text-gray-700">지역을 선택하세요</p>
+              <p className="text-base text-gray-400 mt-3 leading-relaxed">
                 지도를 클릭하면 해당 지역의 상권을 분석합니다.<br />두 곳을 선택하면 비교 분석이 가능합니다.
               </p>
             </div>
@@ -652,12 +661,12 @@ export default function ComparePage() {
                     {(commentLoading || aiComment) && (
                       <div className="px-5 py-4 border-t border-gray-100">
                         <div className="flex items-center gap-2 mb-3">
-                          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">AI 분석</p>
+                          <p className="text-sm font-bold text-gray-700">AI 분석</p>
                           {!commentLoading && aiComment && (
-                            <span className="rounded bg-rose-50 px-2 py-0.5 text-[10px] font-semibold text-rose-600">AI 생성</span>
+                            <span className="rounded px-2 py-0.5 text-[10px] font-semibold text-white" style={{ background: "#f97316" }}>AI 생성</span>
                           )}
                           {commentLoading && (
-                            <span className="text-[10px] text-rose-400 animate-pulse">분석 중…</span>
+                            <span className="text-[10px] text-[#f97316] animate-pulse">분석 중…</span>
                           )}
                         </div>
 
@@ -674,15 +683,15 @@ export default function ComparePage() {
                         ) : aiComment && (
                           <div className="space-y-4">
                             {/* 추천 결론 */}
-                            <div className="rounded-lg bg-rose-50 px-3 py-2.5">
-                              <p className="text-xs font-bold text-rose-700">✦ {aiComment.recommendation}</p>
+                            <div className="rounded-lg px-3 py-2.5" style={{ background: "#fff7ed" }}>
+                              <p className="text-sm font-bold" style={{ color: "#c2410c" }}>✦ {aiComment.recommendation}</p>
                             </div>
 
                             {/* 섹션별 분석 */}
                             {aiComment.sections.map((section) => (
                               <div key={section.title}>
-                                <p className="text-[11px] font-semibold text-gray-500 mb-1">{section.title}</p>
-                                <p className="text-xs leading-5 text-gray-700">{section.content}</p>
+                                <p className="text-sm font-semibold text-gray-700 mb-1">{section.title}</p>
+                                <p className="text-sm font-medium leading-6 text-gray-700">{section.content}</p>
                               </div>
                             ))}
                           </div>
