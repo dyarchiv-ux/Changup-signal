@@ -7,16 +7,24 @@ const BASE = 'http://openapi.seoul.go.kr:8088'
 type SeoulRow = Record<string, string | number | null | undefined>
 type SeoulApiPage = Record<string, { row?: SeoulRow[] } | undefined>
 
+async function fetchJson(url: string): Promise<unknown> {
+  const res = await fetch(url)
+  const text = await res.text()
+  if (text.trimStart().startsWith('<')) {
+    throw new Error(`Seoul API XML 오류 (HTTP ${res.status}): ${text.slice(0, 300)}`)
+  }
+  return JSON.parse(text)
+}
+
 async function fetchAllPages(key: string, service: string, total: number, suffix = ''): Promise<SeoulRow[]> {
   const size = 1000
   const pages = Math.ceil(total / size)
   const results = await Promise.all(
     Array.from({ length: pages }, (_, i) =>
-      fetch(`${BASE}/${key}/json/${service}/${i * size + 1}/${Math.min((i + 1) * size, total)}/${suffix}`)
-        .then(r => r.json())
+      fetchJson(`${BASE}/${key}/json/${service}/${i * size + 1}/${Math.min((i + 1) * size, total)}/${suffix}`)
     )
   )
-  return results.flatMap((r: SeoulApiPage) => r?.[service]?.row ?? [])
+  return results.flatMap((r) => (r as SeoulApiPage)?.[service]?.row ?? [])
 }
 
 // ── 추정매출 캐시 ── dong8 → industryCode → SalesEntry ─────────────────────
@@ -35,8 +43,8 @@ async function loadSalesCache() {
   const key = process.env.SEOUL_API_KEY_SALES!
   const service = 'VwsmAdstrdSelngW'
   const quarter = '20254'
-  const first = await fetch(`${BASE}/${key}/json/${service}/1/1/${quarter}/`).then(r => r.json())
-  const total: number = first?.[service]?.list_total_count ?? 0
+  const first = await fetchJson(`${BASE}/${key}/json/${service}/1/1/${quarter}/`) as SeoulApiPage
+  const total: number = (first?.[service] as { list_total_count?: number })?.list_total_count ?? 0
   const rows = await fetchAllPages(key, service, total, `${quarter}/`)
 
   const map = new Map<string, Map<string, SalesEntry>>()
@@ -88,8 +96,8 @@ async function loadStoreCache() {
   const key = process.env.SEOUL_API_KEY_STORE!
   const service = 'VwsmAdstrdStorW'
   const quarter = '20254'
-  const first = await fetch(`${BASE}/${key}/json/${service}/1/1/${quarter}/`).then(r => r.json())
-  const total: number = first?.[service]?.list_total_count ?? 0
+  const first = await fetchJson(`${BASE}/${key}/json/${service}/1/1/${quarter}/`) as SeoulApiPage
+  const total: number = (first?.[service] as { list_total_count?: number })?.list_total_count ?? 0
   const rows = await fetchAllPages(key, service, total, `${quarter}/`)
 
   const map = new Map<string, Map<string, StoreEntry>>()
@@ -121,8 +129,8 @@ let cnsmpPromise: Promise<Map<string, number>> | null = null
 async function loadCnsmpCache() {
   const key = process.env.SEOUL_API_KEY_CONSUMPTION!
   const service = 'VwsmAdstrdNcmCnsmpW'
-  const first = await fetch(`${BASE}/${key}/json/${service}/1/1/`).then(r => r.json())
-  const total: number = first?.[service]?.list_total_count ?? 0
+  const first = await fetchJson(`${BASE}/${key}/json/${service}/1/1/`) as SeoulApiPage
+  const total: number = (first?.[service] as { list_total_count?: number })?.list_total_count ?? 0
   const rows = await fetchAllPages(key, service, total)
   const latest = new Map<string, { q: string; amt: number }>()
   for (const r of rows) {
@@ -145,10 +153,10 @@ let popPromise: Promise<Map<string, number>> | null = null
 async function loadPopCache() {
   const key = process.env.SEOUL_API_KEY_POPULATION!
   const service = 'SPOP_LOCAL_RESD_DONG'
-  const r0 = await fetch(`${BASE}/${key}/json/${service}/1/1/`).then(r => r.json())
-  const latestDate: string = r0?.[service]?.row?.[0]?.STDR_DE_ID ?? '20260503'
-  const r1 = await fetch(`${BASE}/${key}/json/${service}/1/1/${latestDate}/`).then(r => r.json())
-  const total: number = r1?.[service]?.list_total_count ?? 0
+  const r0 = await fetchJson(`${BASE}/${key}/json/${service}/1/1/`) as SeoulApiPage
+  const latestDate: string = (r0?.[service] as { row?: { STDR_DE_ID?: string }[] })?.row?.[0]?.STDR_DE_ID ?? '20260503'
+  const r1 = await fetchJson(`${BASE}/${key}/json/${service}/1/1/${latestDate}/`) as SeoulApiPage
+  const total: number = (r1?.[service] as { list_total_count?: number })?.list_total_count ?? 0
   const rows = await fetchAllPages(key, service, total, `${latestDate}/`)
   const raw = new Map<string, { sum: number; cnt: number }>()
   for (const r of rows) {
@@ -177,8 +185,8 @@ let flowPopPromise: Promise<Map<string, FlowEntry>> | null = null
 async function loadFlowPopCache() {
   const key = process.env.SEOUL_API_KEY_FLOW_POPULATION!
   const service = 'VwsmAdstrdFlpopW'
-  const first = await fetch(`${BASE}/${key}/json/${service}/1/1/`).then(r => r.json())
-  const total: number = first?.[service]?.list_total_count ?? 0
+  const first = await fetchJson(`${BASE}/${key}/json/${service}/1/1/`) as SeoulApiPage
+  const total: number = (first?.[service] as { list_total_count?: number })?.list_total_count ?? 0
   const rows = await fetchAllPages(key, service, total)
 
   const latest = new Map<string, { q: string; entry: FlowEntry }>()
