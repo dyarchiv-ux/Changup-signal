@@ -22,6 +22,9 @@ function fmtAmt(won: number) {
 function buildUserMessage(body: RequestBody): string {
   const { result: r, context: ctx, input: i } = body
   const isProfit = r.runwayMonths == null
+  const breakEvenDailyCustomers = i.averageTicket > 0
+    ? Math.ceil(r.breakEvenSales / 30 / i.averageTicket)
+    : null
   const lines = [
     `[창업자 프로필]`,
     `나이: ${i.ownerAge}세 / ${i.isFirstBusiness ? '첫 창업' : '재창업'}`,
@@ -43,7 +46,9 @@ function buildUserMessage(body: RequestBody): string {
     `필요 추가자금: ${fmtAmt(r.fundingGap)}`,
   ]
   if (r.dailyCustomers != null)
-    lines.push(`손익분기 달성을 위한 일 필요 고객 수: 약 ${Math.round(r.dailyCustomers)}명 (객단가 ${fmtAmt(i.averageTicket)})`)
+    lines.push(`예상 일 방문고객 수: 약 ${Math.round(r.dailyCustomers).toLocaleString()}명 (객단가 ${fmtAmt(i.averageTicket)})`)
+  if (breakEvenDailyCustomers != null)
+    lines.push(`손익분기 필요 일 고객 수: 약 ${breakEvenDailyCustomers.toLocaleString()}명 (객단가 ${fmtAmt(i.averageTicket)})`)
   return lines.join('\n')
 }
 
