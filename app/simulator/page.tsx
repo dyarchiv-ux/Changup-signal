@@ -357,9 +357,9 @@ function SimulatorPageInner() {
         <p className="text-sm text-slate-500">입지 진단부터 자금 추천까지 한 번에 확인합니다.</p>
       </header>
 
-      <div className="grid min-h-[calc(100vh-57px)] grid-cols-1 lg:grid-cols-[500px_1fr]">
+      <div className="grid min-h-[calc(100dvh-57px)] grid-cols-1 lg:grid-cols-[500px_1fr]">
         <aside className="border-r border-gray-200 bg-white">
-          <div className="h-[42vh] border-b border-gray-200 lg:h-72">
+          <div className="h-[28vh] border-b border-gray-200 lg:h-72">
             <div className="relative h-full">
               <KakaoMap ref={mapRef} maxMarkers={1} onMarkersChange={handleMarkersChange} />
             </div>

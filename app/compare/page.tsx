@@ -50,9 +50,9 @@ function DonutChart({ labels, values, colors }: {
   })
 
   return (
-    <div className="flex items-center gap-3">
-      {/* 왼쪽 범례 */}
-      <div className="shrink-0 space-y-2">
+    <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-center">
+      {/* 범례 */}
+      <div className="shrink-0 flex flex-row flex-wrap gap-2 sm:flex-col sm:flex-nowrap">
         {labels.map((label, i) => (
           <div key={label} className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full shrink-0"
@@ -64,7 +64,7 @@ function DonutChart({ labels, values, colors }: {
       </div>
 
       {/* 도넛 */}
-      <div className="relative w-52 shrink-0" style={{ aspectRatio: '1' }}>
+      <div className="relative w-44 sm:w-52 shrink-0" style={{ aspectRatio: '1' }}>
         <svg viewBox="0 0 100 100" className="w-full h-full"
           style={{ transform: 'rotate(-90deg)' }}>
           {/* 배경 링 */}
@@ -556,7 +556,7 @@ export default function ComparePage() {
   )
 
   return (
-    <main className="flex flex-col h-screen">
+    <main className="flex flex-col h-dvh">
       {/* 헤더 */}
       <header className="flex flex-col gap-2 px-4 py-3 border-b shrink-0 lg:flex-row lg:items-center lg:justify-between lg:px-6" style={{ background: "#daeaf1" }}>
         <div className="flex items-center gap-4">
@@ -570,9 +570,9 @@ export default function ComparePage() {
         </p>
       </header>
 
-      <div className="flex flex-1 min-h-0 flex-col lg:flex-row">
+      <div className="flex flex-1 min-h-0 flex-col overflow-y-auto lg:flex-row lg:overflow-hidden">
         {/* 지도 */}
-        <div className="h-[45vh] lg:h-auto" style={{ flex: 1, position: 'relative', minWidth: 0 }}>
+        <div className="h-[40vh] shrink-0 lg:h-auto" style={{ flex: 1, position: 'relative', minWidth: 0 }}>
           <KakaoMap ref={mapRef} onMarkersChange={setMarkers} />
         </div>
 

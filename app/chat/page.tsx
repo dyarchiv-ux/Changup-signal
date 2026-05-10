@@ -288,7 +288,7 @@ function ChatPageInner() {
   const quickQuestions = selectedIndustry ? QUICK_QUESTIONS_INDUSTRY : QUICK_QUESTIONS_BASE
 
   return (
-    <main className="flex flex-col h-screen bg-gray-50">
+    <main className="flex flex-col h-dvh bg-gray-50">
       {/* 헤더 */}
       <header className="flex flex-col gap-2 px-4 py-3 border-b shrink-0 lg:flex-row lg:items-center lg:justify-between lg:px-6" style={{ background: "#daeaf1" }}>
         <div className="flex items-center gap-4">
@@ -300,9 +300,9 @@ function ChatPageInner() {
 
       <div className="flex flex-1 min-h-0 flex-col lg:flex-row">
         {/* 사이드바 */}
-        <aside className="w-full border-b bg-white flex flex-col shrink-0 lg:w-[28rem] lg:border-b-0 lg:border-r">
+        <aside className="w-full border-b bg-white flex flex-col shrink-0 max-h-[50vh] lg:max-h-none lg:w-[28rem] lg:border-b-0 lg:border-r">
           {/* 지도 */}
-          <div className="relative h-[42vh] border-b shrink-0 lg:h-96">
+          <div className="relative h-[28vh] border-b shrink-0 lg:h-96">
             <KakaoMap ref={mapRef} maxMarkers={1} onMarkersChange={handleMarkersChange} />
           </div>
 
