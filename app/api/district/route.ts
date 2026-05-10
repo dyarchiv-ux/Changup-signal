@@ -231,9 +231,20 @@ export async function GET(req: NextRequest) {
 
   if (!cd8) return NextResponse.json({ error: 'adstrdCd required' }, { status: 400 })
 
-  const [salesMap, storeMap, cnsmpMap, popMap, flowPopMap] = await Promise.all([
-    getSales(), getStore(), getCnsmp(), getPop(), getFlowPop(),
-  ])
+  let salesMap: Awaited<ReturnType<typeof getSales>>
+  let storeMap: Awaited<ReturnType<typeof getStore>>
+  let cnsmpMap: Awaited<ReturnType<typeof getCnsmp>>
+  let popMap: Awaited<ReturnType<typeof getPop>>
+  let flowPopMap: Awaited<ReturnType<typeof getFlowPop>>
+
+  try {
+    ;[salesMap, storeMap, cnsmpMap, popMap, flowPopMap] = await Promise.all([
+      getSales(), getStore(), getCnsmp(), getPop(), getFlowPop(),
+    ])
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    return NextResponse.json({ error: `서울 공공데이터 API 오류: ${message}` }, { status: 502 })
+  }
 
   const dongSales = salesMap?.get(cd8)   // Map<industryCode, SalesEntry>
   const dongStore = storeMap?.get(cd8)   // Map<industryCode, StoreEntry>
