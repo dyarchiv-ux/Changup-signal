@@ -1,14 +1,18 @@
 "use client";
 
 import { Suspense, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
 function LoginPageInner() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
+  const redirectedFrom = searchParams.get("redirectedFrom");
+  const nextPath =
+    redirectedFrom?.startsWith("/") && !redirectedFrom.startsWith("//")
+      ? redirectedFrom
+      : "/";
 
   const [mode, setMode] = useState<"login" | "signup">(
     searchParams.get("mode") === "signup" ? "signup" : "login"
@@ -28,16 +32,14 @@ function LoginPageInner() {
       if (error) {
         setError(error.message);
       } else {
-        router.push("/");
-        router.refresh();
+        window.location.assign(nextPath);
       }
     } else {
       const { error } = await supabase.auth.signUp({ email, password });
       if (error) {
         setError(error.message);
       } else {
-        router.push("/");
-        router.refresh();
+        window.location.assign(nextPath);
       }
     }
     setLoading(false);

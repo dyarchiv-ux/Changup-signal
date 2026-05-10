@@ -1,14 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 export const preferredRegion = ['icn1']
+export const maxDuration = 60
 
 const BASE = 'http://openapi.seoul.go.kr:8088'
+const SEOUL_API_REVALIDATE_SECONDS = 60 * 60 * 24
+const SEOUL_API_TIMEOUT_MS = 15000
 
 type SeoulRow = Record<string, string | number | null | undefined>
 type SeoulApiPage = Record<string, { row?: SeoulRow[] } | undefined>
 
 async function fetchJson(url: string): Promise<unknown> {
-  const res = await fetch(url)
+  const res = await fetch(url, {
+    next: { revalidate: SEOUL_API_REVALIDATE_SECONDS },
+    signal: AbortSignal.timeout(SEOUL_API_TIMEOUT_MS),
+  })
   const text = await res.text()
   if (text.trimStart().startsWith('<')) {
     throw new Error(`Seoul API XML 오류 (HTTP ${res.status}): ${text.slice(0, 300)}`)

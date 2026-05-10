@@ -89,6 +89,7 @@ function ChatPageInner() {
   const [districtLoading, setDistrictLoading] = useState(false)
   const [selectedIndustryCode, setSelectedIndustryCode] = useState('')
   const [industryData, setIndustryData] = useState<DistrictData | null>(null)
+  const [industryLoading, setIndustryLoading] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [streaming, setStreaming] = useState(false)
@@ -143,6 +144,7 @@ function ChatPageInner() {
           ? initIndustryRef.current
           : (data.topIndustries[0]?.code ?? '')
         initIndustryRef.current = ''
+        if (preferred) setIndustryLoading(true)
         if (preferred) setSelectedIndustryCode(preferred)
       })
       .catch(() => {})
@@ -156,18 +158,20 @@ function ChatPageInner() {
       .then(r => r.json())
       .then((data: DistrictData) => setIndustryData(data))
       .catch(() => {})
+      .finally(() => setIndustryLoading(false))
   }, [marker, selectedIndustryCode])
 
   // 위치+업종 준비되면 웰컴 메시지 자동 트리거
   useEffect(() => {
-    if (!marker || !district || messages.length > 0 || districtLoading) return
+    if (!marker || !district || messages.length > 0 || districtLoading || industryLoading) return
+    if (selectedIndustryCode && !industryData) return
     const industryName = selectedIndustry?.name ?? null
     const firstQ = industryName
       ? `${marker.guName} ${marker.dongName}에서 ${industryName} 창업에 대해 분석해줘.`
       : `${marker.guName} ${marker.dongName} 상권을 분석해줘.`
     sendMessage(firstQ)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [district, selectedIndustry])
+  }, [district, selectedIndustry, selectedIndustryCode, industryData, districtLoading, industryLoading, messages.length])
 
   // 메시지 추가 시 스크롤
   useEffect(() => {
@@ -181,6 +185,7 @@ function ChatPageInner() {
     setSelectedIndustryCode('')
     setMessages([])
     setDistrictLoading(next.length > 0)
+    setIndustryLoading(false)
     if (next.length === 0) {
       setDistrictLoading(false)
     }
@@ -190,6 +195,7 @@ function ChatPageInner() {
     setSelectedIndustryCode(code)
     setMessages([])
     setIndustryData(null)
+    setIndustryLoading(!!code)
   }
 
   function handleSearchSelect(r: { address: string; lat: number; lng: number }) {
@@ -206,6 +212,7 @@ function ChatPageInner() {
     setIndustryData(null)
     setSelectedIndustryCode('')
     setMessages([])
+    setIndustryLoading(false)
   }
 
   async function sendMessage(text: string) {

@@ -11,8 +11,10 @@ export default async function HomePage() {
   async function signOut() {
     "use server";
     const { createClient } = await import("@/lib/supabase/server");
+    const { redirect } = await import("next/navigation");
     const supabase = await createClient();
     await supabase.auth.signOut();
+    redirect("/");
   }
 
   return (
@@ -20,7 +22,7 @@ export default async function HomePage() {
       className="relative flex flex-col items-center justify-center min-h-screen p-8 overflow-hidden"
       style={{ background: "linear-gradient(135deg, #f1f7f8, #abc6db)" }}
     >
-      <HomeNav isLoggedIn={!!user} />
+      <HomeNav />
 
       {/* 상단 로그인 버튼 */}
       <div className="absolute top-5 right-6 z-20 flex items-center gap-3">
@@ -93,7 +95,7 @@ export default async function HomePage() {
           지역을 선택하면 매출·유동인구·업종 분석과 금융지원 매칭까지 한번에
         </p>
 
-        <StartButton isLoggedIn={!!user} />
+        <StartButton />
       </div>
     </main>
   );
