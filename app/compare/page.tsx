@@ -558,7 +558,7 @@ export default function ComparePage() {
   return (
     <main className="flex flex-col h-screen">
       {/* 헤더 */}
-      <header className="flex items-center justify-between px-6 py-3 border-b shrink-0" style={{ background: "#daeaf1" }}>
+      <header className="flex flex-col gap-2 px-4 py-3 border-b shrink-0 lg:flex-row lg:items-center lg:justify-between lg:px-6" style={{ background: "#daeaf1" }}>
         <div className="flex items-center gap-4">
           <Link href="/" className="text-sm text-slate-500 hover:text-slate-700">← 시작페이지로</Link>
           <h1 className="text-lg font-bold text-slate-700"> 창업 입지 비교 분석</h1>
@@ -570,14 +570,14 @@ export default function ComparePage() {
         </p>
       </header>
 
-      <div className="flex flex-1 min-h-0">
+      <div className="flex flex-1 min-h-0 flex-col lg:flex-row">
         {/* 지도 */}
-        <div style={{ flex: 1, position: 'relative', minWidth: 0 }}>
+        <div className="h-[45vh] lg:h-auto" style={{ flex: 1, position: 'relative', minWidth: 0 }}>
           <KakaoMap ref={mapRef} onMarkersChange={setMarkers} />
         </div>
 
         {/* 분석 패널 */}
-        <div className="w-[40rem] border-l flex flex-col bg-white shrink-0">
+        <div className="w-full border-t flex flex-col bg-white shrink-0 lg:w-[40rem] lg:border-l lg:border-t-0">
 
           {/* idle */}
           {panelState === 'idle' && (

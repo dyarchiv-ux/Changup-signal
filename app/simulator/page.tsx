@@ -349,7 +349,7 @@ function SimulatorPageInner() {
 
   return (
     <main className="min-h-screen bg-gray-50 text-gray-900">
-      <header className="flex items-center justify-between px-6 py-3 border-b shrink-0" style={{ background: "#daeaf1" }}>
+      <header className="flex flex-col gap-2 px-4 py-3 border-b shrink-0 lg:flex-row lg:items-center lg:justify-between lg:px-6" style={{ background: "#daeaf1" }}>
         <div className="flex items-center gap-4">
           <Link href="/compare" className="text-sm text-slate-500 hover:text-slate-700">상권 비교</Link>
           <h1 className="text-lg font-bold text-slate-700">창업 시뮬레이터</h1>
@@ -357,9 +357,9 @@ function SimulatorPageInner() {
         <p className="text-sm text-slate-500">입지 진단부터 자금 추천까지 한 번에 확인합니다.</p>
       </header>
 
-      <div className="grid min-h-[calc(100vh-57px)] grid-cols-[500px_1fr]">
+      <div className="grid min-h-[calc(100vh-57px)] grid-cols-1 lg:grid-cols-[500px_1fr]">
         <aside className="border-r border-gray-200 bg-white">
-          <div className="h-72 border-b border-gray-200">
+          <div className="h-[42vh] border-b border-gray-200 lg:h-72">
             <div className="relative h-full">
               <KakaoMap ref={mapRef} maxMarkers={1} onMarkersChange={handleMarkersChange} />
             </div>
@@ -504,14 +504,14 @@ function SimulatorPageInner() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
                 <MetricCard label="예상 월매출" value={fmtWon(result.estimatedMonthlySales)} />
                 <MetricCard label="월 예상 순이익" value={fmtWon(result.expectedMonthlyProfit)} tone={result.expectedMonthlyProfit >= 0 ? 'blue' : 'red'} />
                 <MetricCard label="손익분기점 매출" value={fmtWon(result.breakEvenSales)} tone="green" />
                 <MetricCard label="필요 추가자금" value={fmtWon(result.fundingGap)} tone={result.fundingGap > 0 ? 'red' : 'blue'} />
               </div>
 
-              <div className="grid grid-cols-[1.1fr_0.9fr] gap-5">
+              <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1.1fr_0.9fr]">
                 <div className="rounded-xl bg-white p-5 shadow-sm">
                   <h3 className="text-sm font-bold">점수 구성</h3>
                   <div className="mt-4 space-y-4">
@@ -584,7 +584,7 @@ function SimulatorPageInner() {
                     ))}
                   </div>
                 ) : (
-                  <div className="mt-3 grid grid-cols-3 gap-3">
+                  <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                     {result.summary.map((text) => (
                       <p key={text} className="rounded-lg bg-gray-50 p-3 text-sm leading-6 text-gray-700">{text}</p>
                     ))}
@@ -603,7 +603,7 @@ function SimulatorPageInner() {
                   <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">{fundingError}</p>
                 )}
                 {fundingLoading && (
-                  <div className="mt-4 grid grid-cols-3 gap-3">
+                  <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                     {[0, 1, 2].map((item) => (
                       <div key={item} className="h-44 animate-pulse rounded-lg border border-gray-200 bg-gray-50" />
                     ))}
@@ -620,7 +620,7 @@ function SimulatorPageInner() {
                           </div>
                           <span className="text-xs text-gray-400">{loanPrograms.length}건</span>
                         </div>
-                        <div className="grid grid-cols-3 gap-3">
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                           {loanPrograms.map((program) => <FundingCard key={program.id} program={program} />)}
                         </div>
                       </section>
@@ -635,7 +635,7 @@ function SimulatorPageInner() {
                           </div>
                           <span className="text-xs text-gray-400">{startupPrograms.length}건</span>
                         </div>
-                        <div className="grid grid-cols-3 gap-3">
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                           {startupPrograms.map((program) => <FundingCard key={program.id} program={program} />)}
                         </div>
                       </section>
@@ -643,7 +643,7 @@ function SimulatorPageInner() {
                   </div>
                 )}
                 {!fundingLoading && fundingPrograms.length === 0 && (
-                  <div className="mt-4 grid grid-cols-3 gap-3">
+                  <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                     {result.fundingRecommendations.map((item) => (
                       <div key={item.title} className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
                         <div className="flex items-center justify-between gap-2">

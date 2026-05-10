@@ -290,7 +290,7 @@ function ChatPageInner() {
   return (
     <main className="flex flex-col h-screen bg-gray-50">
       {/* 헤더 */}
-      <header className="flex items-center justify-between px-6 py-3 border-b shrink-0" style={{ background: "#daeaf1" }}>
+      <header className="flex flex-col gap-2 px-4 py-3 border-b shrink-0 lg:flex-row lg:items-center lg:justify-between lg:px-6" style={{ background: "#daeaf1" }}>
         <div className="flex items-center gap-4">
           <Link href="/compare" className="text-sm text-slate-500 hover:text-slate-700">← 상권 비교</Link>
           <h1 className="text-lg font-bold text-slate-700">AI 상담</h1>
@@ -298,11 +298,11 @@ function ChatPageInner() {
         <p className="text-sm text-slate-500">창업 전문 AI가 상담해드립니다</p>
       </header>
 
-      <div className="flex flex-1 min-h-0">
+      <div className="flex flex-1 min-h-0 flex-col lg:flex-row">
         {/* 사이드바 */}
-        <aside className="w-[28rem] border-r bg-white flex flex-col shrink-0">
+        <aside className="w-full border-b bg-white flex flex-col shrink-0 lg:w-[28rem] lg:border-b-0 lg:border-r">
           {/* 지도 */}
-          <div className="relative h-96 border-b shrink-0">
+          <div className="relative h-[42vh] border-b shrink-0 lg:h-96">
             <KakaoMap ref={mapRef} maxMarkers={1} onMarkersChange={handleMarkersChange} />
           </div>
 

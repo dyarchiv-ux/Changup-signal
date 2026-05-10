@@ -69,7 +69,7 @@ export default async function HomePage() {
         alt=""
         width={600}
         height={600}
-        className="absolute left-0 -bottom-24 w-[46%] min-w-[320px] max-w-[600px] object-contain pointer-events-none select-none"
+        className="absolute left-0 -bottom-16 w-[70%] min-w-[240px] max-w-[600px] object-contain pointer-events-none select-none sm:-bottom-24 sm:w-[46%] sm:min-w-[320px]"
         style={{ mixBlendMode: "multiply", opacity: 0.88 }}
         priority
       />
@@ -78,7 +78,7 @@ export default async function HomePage() {
         alt=""
         width={600}
         height={600}
-        className="absolute right-[2%] -bottom-8 w-[44%] min-w-[320px] max-w-[580px] object-contain pointer-events-none select-none"
+        className="absolute right-[2%] -bottom-4 w-[70%] min-w-[240px] max-w-[580px] object-contain pointer-events-none select-none sm:-bottom-8 sm:w-[44%] sm:min-w-[320px]"
         style={{ mixBlendMode: "multiply", opacity: 0.88 }}
         priority
       />
