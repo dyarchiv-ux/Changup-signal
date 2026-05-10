@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server'
 import OpenAI from 'openai'
+import { createClient } from '@/lib/supabase/server'
 
 export const preferredRegion = ['icn1']
 import type { DistrictData } from '@/types/map'
@@ -99,6 +100,16 @@ function buildSystemPrompt(ctx: ChatContext): string {
 }
 
 export async function POST(req: NextRequest) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' },
+    })
+  }
+
   const { messages, context }: { messages: Message[]; context: ChatContext } = await req.json()
 
   if (!Array.isArray(messages) || messages.length > 30) {

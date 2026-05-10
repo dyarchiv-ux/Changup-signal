@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
+import { createClient } from '@/lib/supabase/server'
 
 export const preferredRegion = ['icn1']
 import type { DistrictData } from '@/types/map'
@@ -100,6 +101,13 @@ const SYSTEM_PROMPT = `당신은 서울시 상권 데이터 기반 창업 전문
 - 한국어로 작성, 각 섹션 3~4문장`
 
 export async function POST(req: NextRequest) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   let body: RequestBody
   try {
     body = await req.json()

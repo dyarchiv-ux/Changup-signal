@@ -509,21 +509,26 @@ export default function ComparePage() {
   useEffect(() => {
     if (!dataMap.A || !dataMap.B || loadingMap.A || loadingMap.B || markers.length < 2) return
 
-    setCommentLoading(true)
-    setAiComment(null)
-    fetch('/api/compare-summary', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        a: { ...dataMap.A, guName: markers[0].guName, dongName: markers[0].dongName },
-        b: { ...dataMap.B, guName: markers[1].guName, dongName: markers[1].dongName },
-        industryName: selectedIndustryName,
-      }),
+    let cancelled = false
+    queueMicrotask(() => {
+      if (cancelled) return
+      setCommentLoading(true)
+      setAiComment(null)
+      fetch('/api/compare-summary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          a: { ...dataMap.A!, guName: markers[0].guName, dongName: markers[0].dongName },
+          b: { ...dataMap.B!, guName: markers[1].guName, dongName: markers[1].dongName },
+          industryName: selectedIndustryName,
+        }),
+      })
+        .then(r => r.ok ? r.json() : null)
+        .then((data: CompareSummary | null) => { if (!cancelled && data?.sections) setAiComment(data) })
+        .catch(() => {})
+        .finally(() => { if (!cancelled) setCommentLoading(false) })
     })
-      .then(r => r.ok ? r.json() : null)
-      .then((data: CompareSummary | null) => { if (data?.sections) setAiComment(data) })
-      .catch(() => {})
-      .finally(() => setCommentLoading(false))
+    return () => { cancelled = true }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dataMap.A, dataMap.B, loadingMap.A, loadingMap.B])
 

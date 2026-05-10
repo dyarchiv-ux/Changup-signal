@@ -1,7 +1,8 @@
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import HomeNav from "@/components/HomeNav";
+import StartButton from "@/components/StartButton";
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -92,13 +93,7 @@ export default async function HomePage() {
           지역을 선택하면 매출·유동인구·업종 분석과 금융지원 매칭까지 한번에
         </p>
 
-        <Link
-          href="/compare"
-          className="mt-8 inline-block px-12 py-4 text-xl text-white font-semibold rounded-xl transition-opacity hover:opacity-90"
-          style={{ background: "linear-gradient(135deg, #d5d4f5, #88bde7)" }}
-        >
-          상권 분석 시작하기 →
-        </Link>
+        <StartButton isLoggedIn={!!user} />
       </div>
     </main>
   );

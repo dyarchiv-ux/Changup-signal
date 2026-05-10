@@ -199,7 +199,7 @@ function SimulatorPageInner() {
 
   useEffect(() => {
     if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current)
-    if (!searchQuery.trim()) { setSearchResults([]); setShowResults(false); return }
+    if (!searchQuery.trim()) return
     searchTimeoutRef.current = setTimeout(async () => {
       const results = await mapRef.current?.searchAddress(searchQuery) ?? []
       setSearchResults(results)
@@ -383,7 +383,14 @@ function SimulatorPageInner() {
                   <input
                     type="text"
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => {
+                      const value = e.target.value
+                      setSearchQuery(value)
+                      if (!value.trim()) {
+                        setSearchResults([])
+                        setShowResults(false)
+                      }
+                    }}
                     placeholder="동/구 이름 검색 (예: 합정동)"
                     className="flex-1 py-2 text-sm outline-none placeholder-gray-400"
                   />

@@ -123,7 +123,7 @@ function ChatPageInner() {
   // 검색어 디바운스 처리
   useEffect(() => {
     if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current)
-    if (!searchQuery.trim()) { setSearchResults([]); setShowResults(false); return }
+    if (!searchQuery.trim()) return
     searchTimeoutRef.current = setTimeout(async () => {
       const results = await mapRef.current?.searchAddress(searchQuery) ?? []
       setSearchResults(results)
@@ -135,11 +135,6 @@ function ChatPageInner() {
   // 위치 선택 시 상권 데이터 로드
   useEffect(() => {
     if (!marker?.adstrdCd) return
-    setDistrictLoading(true)
-    setDistrict(null)
-    setIndustryData(null)
-    setSelectedIndustryCode('')
-    setMessages([])
     fetch(`/api/district?adstrdCd=${marker.adstrdCd}`)
       .then(r => r.json())
       .then((data: DistrictData) => {
@@ -156,10 +151,7 @@ function ChatPageInner() {
 
   // 업종 변경 시 업종별 데이터 로드
   useEffect(() => {
-    if (!marker?.adstrdCd || !selectedIndustryCode) {
-      setIndustryData(null)
-      return
-    }
+    if (!marker?.adstrdCd || !selectedIndustryCode) return
     fetch(`/api/district?adstrdCd=${marker.adstrdCd}&industry=${selectedIndustryCode}`)
       .then(r => r.json())
       .then((data: DistrictData) => setIndustryData(data))
@@ -184,11 +176,13 @@ function ChatPageInner() {
 
   function handleMarkersChange(next: MarkerInfo[]) {
     setMarkers(next)
+    setDistrict(null)
+    setIndustryData(null)
+    setSelectedIndustryCode('')
+    setMessages([])
+    setDistrictLoading(next.length > 0)
     if (next.length === 0) {
-      setDistrict(null)
-      setIndustryData(null)
-      setSelectedIndustryCode('')
-      setMessages([])
+      setDistrictLoading(false)
     }
   }
 
@@ -324,7 +318,14 @@ function ChatPageInner() {
                   <input
                     type="text"
                     value={searchQuery}
-                    onChange={e => setSearchQuery(e.target.value)}
+                    onChange={e => {
+                      const value = e.target.value
+                      setSearchQuery(value)
+                      if (!value.trim()) {
+                        setSearchResults([])
+                        setShowResults(false)
+                      }
+                    }}
                     placeholder="동/구 이름 검색 (예: 합정동)"
                     className="flex-1 py-2 text-sm outline-none placeholder-gray-400"
                   />
