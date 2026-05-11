@@ -137,7 +137,7 @@ function ChatPageInner() {
   useEffect(() => {
     if (!marker?.adstrdCd) return
     fetch(`/api/district?adstrdCd=${marker.adstrdCd}`)
-      .then(r => r.json())
+      .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json() })
       .then((data: DistrictData) => {
         setDistrict(data)
         const preferred = initIndustryRef.current && data.topIndustries.some((i) => i.code === initIndustryRef.current)
@@ -147,7 +147,9 @@ function ChatPageInner() {
         if (preferred) setIndustryLoading(true)
         if (preferred) setSelectedIndustryCode(preferred)
       })
-      .catch(() => {})
+      .catch(() => {
+        setMessages([{ id: crypto.randomUUID(), role: 'assistant', content: '상권 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.' }])
+      })
       .finally(() => setDistrictLoading(false))
   }, [marker])
 

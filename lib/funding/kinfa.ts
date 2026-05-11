@@ -94,7 +94,7 @@ export async function fetchKinfaLoans(profile: KinfaProfile, signal: AbortSignal
   url.searchParams.set('type', 'xml')
   url.searchParams.set('TGT_FLTR', '사업자')
 
-  const res = await fetch(url, { signal, next: { revalidate: 86400 } })
+  const res = await fetch(url, { signal, cache: 'no-store' })
   if (!res.ok) return []
 
   const xml = await res.text()

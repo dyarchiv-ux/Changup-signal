@@ -462,20 +462,21 @@ export default function ComparePage() {
       setLoadingMap(prev => ({ ...prev, [marker.label]: true }))
       const url = `/api/district?adstrdCd=${marker.adstrdCd}${selectedIndustry ? `&industry=${selectedIndustry}` : ''}`
       fetch(url)
-        .then(r => r.json())
+        .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json() })
         .then((data: DistrictData) => {
           fetchCache.current.set(cacheKey, data)
           setDataMap(prev => {
             const label = marker.label as 'A' | 'B'
             const existing = prev[label]
-            // 업종별 응답은 topIndustries: []로 오므로, 이전 일반 데이터의 topIndustries 보존
             const merged = selectedIndustry && existing?.topIndustries?.length
               ? { ...data, topIndustries: existing.topIndustries }
               : data
             return { ...prev, [label]: merged }
           })
         })
-        .catch(() => {})
+        .catch(() => {
+          setDataMap(prev => ({ ...prev, [marker.label as 'A' | 'B']: null }))
+        })
         .finally(() => setLoadingMap(prev => ({ ...prev, [marker.label]: false })))
     }
   }, [markers, selectedIndustry])

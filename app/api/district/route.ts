@@ -91,7 +91,30 @@ async function loadSalesCache() {
   return (salesCache = map)
 }
 
-const getSales = () => salesCache ?? (salesPromise ??= loadSalesCache()).then(m => (salesCache = m!))
+function makeGetter<T>(
+  getCache: () => T | null,
+  setCache: (v: T) => void,
+  getPromise: () => Promise<T> | null,
+  setPromise: (p: Promise<T> | null) => void,
+  load: () => Promise<T>,
+): () => Promise<T> {
+  return () => {
+    const c = getCache()
+    if (c) return Promise.resolve(c)
+    let p = getPromise()
+    if (!p) {
+      p = load().then(v => { setCache(v); return v }).catch(err => { setPromise(null); throw err })
+      setPromise(p)
+    }
+    return p
+  }
+}
+
+const getSales = makeGetter(
+  () => salesCache, v => { salesCache = v },
+  () => salesPromise, p => { salesPromise = p },
+  loadSalesCache,
+)
 
 // ── 점포 캐시 ── dong8 → industryCode → StoreEntry ──────────────────────────
 type StoreEntry = { name: string; stores: number; similar: number; openCo: number; closeCo: number; frcCo: number }
@@ -127,7 +150,11 @@ async function loadStoreCache() {
   return (storeCache = map)
 }
 
-const getStore = () => storeCache ?? (storePromise ??= loadStoreCache()).then(m => (storeCache = m!))
+const getStore = makeGetter(
+  () => storeCache, v => { storeCache = v },
+  () => storePromise, p => { storePromise = p },
+  loadStoreCache,
+)
 
 // ── 소비 캐시 ── dong8 → 월소비지출 ─────────────────────────────────────────
 let cnsmpCache: Map<string, number> | null = null
@@ -151,7 +178,11 @@ async function loadCnsmpCache() {
   return (cnsmpCache = map)
 }
 
-const getCnsmp = () => cnsmpCache ?? (cnsmpPromise ??= loadCnsmpCache()).then(m => (cnsmpCache = m!))
+const getCnsmp = makeGetter(
+  () => cnsmpCache, v => { cnsmpCache = v },
+  () => cnsmpPromise, p => { cnsmpPromise = p },
+  loadCnsmpCache,
+)
 
 // ── 생활인구 캐시 ── dong8 → 시간대평균 인구 ─────────────────────────────────
 let popCache: Map<string, number> | null = null
@@ -176,7 +207,11 @@ async function loadPopCache() {
   return (popCache = map)
 }
 
-const getPop = () => popCache ?? (popPromise ??= loadPopCache()).then(m => (popCache = m!))
+const getPop = makeGetter(
+  () => popCache, v => { popCache = v },
+  () => popPromise, p => { popPromise = p },
+  loadPopCache,
+)
 
 type FlowEntry = {
   total: number
@@ -238,7 +273,11 @@ async function loadFlowPopCache() {
   return (flowPopCache = map)
 }
 
-const getFlowPop = () => flowPopCache ?? (flowPopPromise ??= loadFlowPopCache()).then(m => (flowPopCache = m!))
+const getFlowPop = makeGetter(
+  () => flowPopCache, v => { flowPopCache = v },
+  () => flowPopPromise, p => { flowPopPromise = p },
+  loadFlowPopCache,
+)
 
 // ── GET /api/district ────────────────────────────────────────────────────────
 export async function GET(req: NextRequest) {
