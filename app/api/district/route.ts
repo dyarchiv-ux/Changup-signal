@@ -24,12 +24,14 @@ async function fetchJson(url: string): Promise<unknown> {
 async function fetchAllPages(key: string, service: string, total: number, suffix = ''): Promise<SeoulRow[]> {
   const size = 1000
   const pages = Math.ceil(total / size)
-  const results = await Promise.all(
-    Array.from({ length: pages }, (_, i) =>
-      fetchJson(`${BASE}/${key}/json/${service}/${i * size + 1}/${Math.min((i + 1) * size, total)}/${suffix}`)
-    )
-  )
-  return results.flatMap((r) => (r as SeoulApiPage)?.[service]?.row ?? [])
+  const rows: SeoulRow[] = []
+  for (let i = 0; i < pages; i++) {
+    const r = await fetchJson(
+      `${BASE}/${key}/json/${service}/${i * size + 1}/${Math.min((i + 1) * size, total)}/${suffix}`
+    ) as SeoulApiPage
+    rows.push(...(r?.[service]?.row ?? []))
+  }
+  return rows
 }
 
 // ── 추정매출 캐시 ── dong8 → industryCode → SalesEntry ─────────────────────
