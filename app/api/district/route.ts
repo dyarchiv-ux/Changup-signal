@@ -259,6 +259,7 @@ export async function GET(req: NextRequest) {
     ])
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)
+    console.error('[district] Seoul API error:', message, err)
     return NextResponse.json({ error: `서울 공공데이터 API 오류: ${message}` }, { status: 502 })
   }
 

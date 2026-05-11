@@ -92,7 +92,7 @@ function buildSystemPrompt(ctx: ChatContext): string {
   } else {
     lines.push(`전체 월매출: ${fmtAmt(d.totalSales)}`)
     lines.push(`전체 점포 수: ${fmt(d.totalStores, '개')}`)
-    const top3 = d.topIndustries.slice(0, 3).map(i => i.name).join(', ')
+    const top3 = (d.topIndustries ?? []).slice(0, 3).map(i => i.name).join(', ')
     if (top3) lines.push(`매출 상위 업종: ${top3}`)
   }
 
