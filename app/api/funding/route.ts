@@ -381,11 +381,11 @@ export async function GET(req: NextRequest) {
       getKStartupPrograms(profile, controller.signal),
       fetchKinfaLoans(profile, controller.signal),
     ])
-    const programs = [
+    const programs = sortPrograms([
       ...topPrograms(catalogPrograms, 3),
       ...topPrograms(loanPrograms, 3),
       ...topPrograms(kStartupPrograms, 3),
-    ]
+    ])
 
     const body: FundingResponse = {
       programs,
