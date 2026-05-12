@@ -51,15 +51,33 @@ function NumberField({
   suffix: string
   onChange: (value: number) => void
 }) {
+  const inputRef = useRef<HTMLInputElement>(null)
+  const [draft, setDraft] = useState(String(value))
+
+  useEffect(() => {
+    if (document.activeElement === inputRef.current) return
+    setDraft(String(value))
+  }, [value])
+
   return (
     <label className="block">
       <span className="text-xs font-medium text-gray-500">{label}</span>
       <div className="mt-1 flex items-center rounded-lg border border-gray-200 bg-white px-3 focus-within:border-rose-400">
         <input
-          type="number"
-          min={0}
-          value={value}
-          onChange={(e) => onChange(Number(e.target.value))}
+          ref={inputRef}
+          type="text"
+          inputMode="numeric"
+          pattern="[0-9]*"
+          value={draft}
+          onChange={(e) => {
+            const digits = e.target.value.replace(/\D/g, '')
+            const normalized = digits.replace(/^0+(?=\d)/, '')
+            setDraft(normalized)
+            onChange(normalized === '' ? 0 : Number(normalized))
+          }}
+          onBlur={() => {
+            if (draft === '') setDraft('0')
+          }}
           className="w-full py-2 text-sm font-semibold text-gray-900 outline-none"
         />
         <span className="shrink-0 text-xs text-gray-400">{suffix}</span>
@@ -351,7 +369,7 @@ function SimulatorPageInner() {
     <main className="min-h-screen bg-gray-50 text-gray-900">
       <header className="flex flex-col gap-2 px-4 py-3 border-b shrink-0 lg:flex-row lg:items-center lg:justify-between lg:px-6" style={{ background: "#daeaf1" }}>
         <div className="flex items-center gap-4">
-          <Link href="/compare" className="text-sm text-slate-500 hover:text-slate-700">상권 비교</Link>
+          <Link href="/compare" className="text-sm text-slate-500 hover:text-slate-700">돌아가기</Link>
           <h1 className="text-lg font-bold text-slate-700">창업 시뮬레이터</h1>
         </div>
         <p className="text-sm text-slate-500">입지 진단부터 자금 추천까지 한 번에 확인합니다.</p>
